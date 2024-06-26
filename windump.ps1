@@ -1,4 +1,4 @@
-Set-ExecutionPolicy Unrestricted
+Set-ExecutionPolicy RemoteSigned
 
 [string] $current_dir = @(Split-Path $MyInvocation.MyCommand.path)
 
@@ -9,7 +9,7 @@ Import-Module ($current_dir + '\scripts\system.ps1')
 
 
 ####
-$workdir_root = $current_dir + "\TEST"
+$workdir_root = $current_dir + "\Output"
 WD-Set-Directory -path $workdir_root
 
 # System
