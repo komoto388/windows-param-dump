@@ -6,6 +6,7 @@ function Get-SystemInfo ([string] $workdir)
   Set-Directory -path $workdir
   
   Export-SystemInfo -workdir $workdir 
+  Export-Device-Manager -workdir $workdir 
   Export-Registry-Data -workdir $workdir 
   Export-Disk-Info -workdir $workdir
 
@@ -32,12 +33,27 @@ function Export-SystemInfo ([string] $workdir)
   
   $file="gci_env.csv"
   Write-Host "Dump environment values to $file ... " -NoNewline
-  Get-ChildItem env: | Select-Object Name, Value | Export-Csv -path $workdir\$file
+  Get-ChildItem env: | Select-Object Name, Value | Export-Csv -path $workdir\$file -Encoding UTF8
   Write-Host "ok" -ForegroundColor Green
 
   return
 }
 
+# デバイス情報を採取する
+#
+function Export-Device-Manager ([string] $workdir) {
+  $file="DeviceInfo_PnPEntity.csv"
+  Write-Host "Dump device info to $file ... " -NoNewline
+  Get-WmiObject -class Win32_PnPEntity | Export-CSV -path $workdir\$file -Encoding UTF8
+  Write-Host "ok" -ForegroundColor Green
+
+  $file="DeviceInfo_PnPSignedDriver.csv"
+  Write-Host "Dump device info (Signed) to $file ... " -NoNewline
+  Get-WmiObject -class Win32_PnPSignedDriver | Export-CSV -path $workdir\$file -Encoding UTF8
+  Write-Host "ok" -ForegroundColor Green
+
+  return
+}
 
 # レジストリ情報を採取する
 #
@@ -79,12 +95,12 @@ function Export-Disk-Info  ([string] $workdir)
   Get-Disk `
     | Select-Object Number, FriendlyName, BusType, OperationalStatus, PartitionStyle, Size, PhysicalSectorSize, `
                     IsBoot, IsClustered, IsOffline, IsReadOnly, IsSystem, NumberOfPartitions `
-    | Export-Csv -path $workdir\$file
+    | Export-Csv -path $workdir\$file -Encoding UTF8
   Write-Host "ok" -ForegroundColor Green
   
   $file="Get-PhysicalDisk.csv"
   Write-Host "Dump Physical Disk Information to $file ... " -NoNewline
-  Get-PhysicalDisk | Export-Csv -path $workdir\$file
+  Get-PhysicalDisk | Export-Csv -path $workdir\$file -Encoding UTF8
   Write-Host "ok" -ForegroundColor Green
 
   return
