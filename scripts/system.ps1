@@ -36,6 +36,12 @@ function Export-SystemInfo ([string] $workdir)
   Get-ChildItem env: | Select-Object Name, Value | Export-Csv -path $workdir\$file -Encoding UTF8
   Write-Host "ok" -ForegroundColor Green
 
+  # ライセンス状態を取得する
+  $file="os_license_status.log"
+  Write-Host "Get OS License Status to $file ... " -NoNewline
+  cscript $env:WinDir\System32\slmgr.vbs /dli > $workdir\$file
+  Write-Host "ok" -ForegroundColor Green
+
   return
 }
 
