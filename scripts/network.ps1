@@ -1,4 +1,6 @@
-function WD-Get-Network ([string] $workdir)
+# ネットワークに関する設定情報を採取する
+#
+function Get-Network-Info ([string] $workdir)
 {
   $workdir = $workdir + "\network"
   WD-Set-Directory -path $workdir
@@ -24,7 +26,9 @@ function WD-Get-Network ([string] $workdir)
   return
 }
 
-function WD-Get-Network-Teaming ([string] $workdir)
+# ネットワークのチーミングデバイス情報について出力する
+#
+function Get-Network-Teaming ([string] $workdir)
 {
   $workdir = $workdir + "\network_team"
   WD-Set-Directory -path $workdir

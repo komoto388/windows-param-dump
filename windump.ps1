@@ -1,22 +1,21 @@
 Set-ExecutionPolicy RemoteSigned
 
-[string] $current_dir = @(Split-Path $MyInvocation.MyCommand.path)
-
 # Include files
-Import-Module ($current_dir + '\scripts\common.ps1')
-Import-Module ($current_dir + '\scripts\network.ps1')
-Import-Module ($current_dir + '\scripts\system.ps1')
+. '.\scripts\common.ps1'
+. '.\scripts\network.ps1'
+. '.\scripts\system.ps1'
 
-
-####
+# Set output directory
+[string] $current_dir = @(Split-Path $MyInvocation.MyCommand.path)
 $workdir_root = $current_dir + "\Output"
-WD-Set-Directory -path $workdir_root
+Set-Directory -path $workdir_root
 
+## Dump
 # System
-WD-Get-SystemInfo -workdir $workdir_root
+Get-SystemInfo -workdir $workdir_root
 
 # Network
-WD-Get-Network -workdir $workdir_root
-WD-Get-Network-Teaming -workdir $workdir_root
+Get-Network-Info -workdir $workdir_root
+Get-Network-Teaming -workdir $workdir_root
 
 exit 0

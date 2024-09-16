@@ -1,4 +1,6 @@
-function WD-Set-Directory ([string] $path)
+# ログを出力するディレクトリを設定する
+#
+function Set-Directory ([string] $path)
 {
   if ( Test-Path $path )
   {
@@ -10,7 +12,9 @@ function WD-Set-Directory ([string] $path)
   return
 }
 
-function WD-Set-File ([string] $path)
+# ログを出力するファイルを設定する
+#
+function Set-File ([string] $path)
 {
   if ( Test-Path -Path $path )
   {

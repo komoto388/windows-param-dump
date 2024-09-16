@@ -1,8 +1,21 @@
-﻿function global:WD-Get-SystemInfo ([string] $workdir)
+﻿# システムに関する各種情報を採取する
+#
+function Get-SystemInfo ([string] $workdir)
 {
   $workdir = $workdir + "\system"
-  WD-Set-Directory -path $workdir
+  Set-Directory -path $workdir
   
+  Export-SystemInfo -workdir $workdir 
+  Export-Registry-Data -workdir $workdir 
+  Export-Disk-Info -workdir $workdir
+
+  return
+}
+
+# systeminfo でシステム情報を採取する
+# 
+function Export-SystemInfo ([string] $workdir)
+{
   $file="systeminfo.log"
   Write-Host "Dump systeminfo to $file ... " -NoNewline
   systeminfo > $workdir\$file
@@ -19,29 +32,16 @@
   
   $file="gci_env.csv"
   Write-Host "Dump environment values to $file ... " -NoNewline
-  gci env: | Select-Object Name, Value | Export-Csv -path $workdir\$file
-  Write-Host "ok" -ForegroundColor Green
-
-  WD-Get-Registry -workdir $workdir
-    
-  $file="Get-Disk.csv"
-  Write-Host "Dump Disk Information to $file ... " -NoNewline
-  Get-Disk `
-    | Select-Object Number, FriendlyName, BusType, OperationalStatus, PartitionStyle, Size, PhysicalSectorSize, `
-                    IsBoot, IsClustered, IsOffline, IsReadOnly, IsSystem, NumberOfPartitions `
-    | Export-Csv -path $workdir\$file
-  Write-Host "ok" -ForegroundColor Green
-  
-  $file="Get-PhysicalDisk.csv"
-  Write-Host "Dump Physical Disk Information to $file ... " -NoNewline
-  Get-PhysicalDisk | Export-Csv -path $workdir\$file
+  Get-ChildItem env: | Select-Object Name, Value | Export-Csv -path $workdir\$file
   Write-Host "ok" -ForegroundColor Green
 
   return
 }
 
 
-function WD-Get-Registry ([string] $workdir)
+# レジストリ情報を採取する
+#
+function Export-Registry-Data ([string] $workdir)
 {
   $reg_path_hash = @{
     HKCR             = 'HKEY_CLASSES_ROOT';
@@ -58,8 +58,7 @@ function WD-Get-Registry ([string] $workdir)
 
   Write-Host "Dump registry infomation."
 
-  $reg_path_hash.GetEnumerator() | sort Name |
-  ForEach-Object{
+  $reg_path_hash.GetEnumerator() | Sort-Object Name | ForEach-Object{
     $file="registry_" + $_.Name + ".log"
     Write-Host " " $_.Value "to $file ... " -NoNewline
     reg query $_.Value /s > $workdir\$file
@@ -67,6 +66,26 @@ function WD-Get-Registry ([string] $workdir)
   }
 
   Write-Host " Success to dump registry infomation."  -ForegroundColor Green
+
+  return
+}
+
+# ディスク情報を採取する
+#
+function Export-Disk-Info  ([string] $workdir)
+{
+  $file="Get-Disk.csv"
+  Write-Host "Dump Disk Information to $file ... " -NoNewline
+  Get-Disk `
+    | Select-Object Number, FriendlyName, BusType, OperationalStatus, PartitionStyle, Size, PhysicalSectorSize, `
+                    IsBoot, IsClustered, IsOffline, IsReadOnly, IsSystem, NumberOfPartitions `
+    | Export-Csv -path $workdir\$file
+  Write-Host "ok" -ForegroundColor Green
+  
+  $file="Get-PhysicalDisk.csv"
+  Write-Host "Dump Physical Disk Information to $file ... " -NoNewline
+  Get-PhysicalDisk | Export-Csv -path $workdir\$file
+  Write-Host "ok" -ForegroundColor Green
 
   return
 }
