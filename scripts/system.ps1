@@ -6,6 +6,7 @@ function Get-SystemInfo ([string] $workdir)
   Set-Directory -path $workdir
   
   Export-SystemInfo -workdir $workdir 
+  Export-Service -workdir $workdir 
   Export-Device-Manager -workdir $workdir 
   Export-Registry-Data -workdir $workdir 
   Export-Disk-Info -workdir $workdir
@@ -59,6 +60,15 @@ function Export-Device-Manager ([string] $workdir) {
   Write-Host "ok" -ForegroundColor Green
 
   return
+}
+
+# サービス情報を取得する
+#
+function Export-Service ([string] $workdir) {
+  $file="Service.csv"
+  Write-Host "Dump device info (Signed) to $file ... " -NoNewline
+  Get-Service | Export-CSV $workdir\$file -Encoding UTF8
+  Write-Host "ok" -ForegroundColor Green
 }
 
 # レジストリ情報を採取する
