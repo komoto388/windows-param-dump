@@ -3,7 +3,7 @@
 function Get-Network-Info ([string] $workdir)
 {
   $workdir = $workdir + "\network"
-  WD-Set-Directory -path $workdir
+  Set-Directory -path $workdir
 
   ipconfig > $workdir\ipconfig.log
   ipconfig /all > $workdir\ipconfig_all.log
@@ -31,7 +31,7 @@ function Get-Network-Info ([string] $workdir)
 function Get-Network-Teaming ([string] $workdir)
 {
   $workdir = $workdir + "\network_team"
-  WD-Set-Directory -path $workdir
+  Set-Directory -path $workdir
 
   if ( (Get-NetLbfoTeam).Length -gt 0 )
   {
@@ -39,7 +39,7 @@ function Get-Network-Teaming ([string] $workdir)
   }
   else
   {
-    WD-Set-File -path $workdir\No_TeamingDevices
+    Set-File -path $workdir\No_TeamingDevices
     Write-Host "[INFO] Teaming Network Devices are none." -ForegroundColor Cyan
   }
 
