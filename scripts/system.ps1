@@ -14,15 +14,17 @@ function Get-SystemInfo ([string] $workdir)
   return
 }
 
-# systeminfo でシステム情報を採取する
+# システム情報を採取する
 # 
 function Export-SystemInfo ([string] $workdir)
 {
+  # OSシステム情報
   $file="systeminfo.log"
   Write-Host "Dump systeminfo to $file ... " -NoNewline
   systeminfo > $workdir\$file
   Write-Host "ok" -ForegroundColor Green
   
+  # ドメイン・ワークグループの判定
   Get-WmiObject Win32_ComputerSystem
   $domain = (Get-WMIObject Win32_ComputerSystem).PartOfDomain
   if($domain)
@@ -32,6 +34,7 @@ function Export-SystemInfo ([string] $workdir)
     Write-Output "not joined to Domain(WORKGROUP)."
   }
   
+  # 環境変数
   $file="gci_env.csv"
   Write-Host "Dump environment values to $file ... " -NoNewline
   Get-ChildItem env: | Select-Object Name, Value | Export-Csv -path $workdir\$file -Encoding UTF8
