@@ -1,13 +1,30 @@
-﻿function global:WD-Get-SystemInfo ([string] $workdir)
+﻿# システムに関する各種情報を採取する
+#
+function Get-SystemInfo ([string] $workdir)
 {
   $workdir = $workdir + "\system"
-  WD-Set-Directory -path $workdir
+  Set-Directory -path $workdir
   
+  Export-SystemInfo -workdir $workdir 
+  Export-Service -workdir $workdir 
+  Export-Device-Manager -workdir $workdir 
+  Export-Registry-Data -workdir $workdir 
+  Export-Disk-Info -workdir $workdir
+
+  return
+}
+
+# システム情報を採取する
+# 
+function Export-SystemInfo ([string] $workdir)
+{
+  # OSシステム情報
   $file="systeminfo.log"
   Write-Host "Dump systeminfo to $file ... " -NoNewline
   systeminfo > $workdir\$file
   Write-Host "ok" -ForegroundColor Green
   
+  # ドメイン・ワークグループの判定
   Get-WmiObject Win32_ComputerSystem
   $domain = (Get-WMIObject Win32_ComputerSystem).PartOfDomain
   if($domain)
@@ -17,31 +34,49 @@
     Write-Output "not joined to Domain(WORKGROUP)."
   }
   
+  # 環境変数
   $file="gci_env.csv"
   Write-Host "Dump environment values to $file ... " -NoNewline
-  gci env: | Select-Object Name, Value | Export-Csv -path $workdir\$file
+  Get-ChildItem env: | Select-Object Name, Value | Export-Csv -path $workdir\$file -Encoding UTF8
   Write-Host "ok" -ForegroundColor Green
 
-  WD-Get-Registry -workdir $workdir
-    
-  $file="Get-Disk.csv"
-  Write-Host "Dump Disk Information to $file ... " -NoNewline
-  Get-Disk `
-    | Select-Object Number, FriendlyName, BusType, OperationalStatus, PartitionStyle, Size, PhysicalSectorSize, `
-                    IsBoot, IsClustered, IsOffline, IsReadOnly, IsSystem, NumberOfPartitions `
-    | Export-Csv -path $workdir\$file
-  Write-Host "ok" -ForegroundColor Green
-  
-  $file="Get-PhysicalDisk.csv"
-  Write-Host "Dump Physical Disk Information to $file ... " -NoNewline
-  Get-PhysicalDisk | Export-Csv -path $workdir\$file
+  # ライセンス状態を取得する
+  $file="os_license_status.log"
+  Write-Host "Get OS License Status to $file ... " -NoNewline
+  cscript $env:WinDir\System32\slmgr.vbs /dli > $workdir\$file
   Write-Host "ok" -ForegroundColor Green
 
   return
 }
 
+# デバイス情報を採取する
+#
+function Export-Device-Manager ([string] $workdir) {
+  $file="DeviceInfo_PnPEntity.csv"
+  Write-Host "Dump device info to $file ... " -NoNewline
+  Get-WmiObject -class Win32_PnPEntity | Export-CSV -path $workdir\$file -Encoding UTF8
+  Write-Host "ok" -ForegroundColor Green
 
-function WD-Get-Registry ([string] $workdir)
+  $file="DeviceInfo_PnPSignedDriver.csv"
+  Write-Host "Dump device info (Signed) to $file ... " -NoNewline
+  Get-WmiObject -class Win32_PnPSignedDriver | Export-CSV -path $workdir\$file -Encoding UTF8
+  Write-Host "ok" -ForegroundColor Green
+
+  return
+}
+
+# サービス情報を取得する
+#
+function Export-Service ([string] $workdir) {
+  $file="Service.csv"
+  Write-Host "Dump device info (Signed) to $file ... " -NoNewline
+  Get-Service | Export-CSV $workdir\$file -Encoding UTF8
+  Write-Host "ok" -ForegroundColor Green
+}
+
+# レジストリ情報を採取する
+#
+function Export-Registry-Data ([string] $workdir)
 {
   $reg_path_hash = @{
     HKCR             = 'HKEY_CLASSES_ROOT';
@@ -58,8 +93,7 @@ function WD-Get-Registry ([string] $workdir)
 
   Write-Host "Dump registry infomation."
 
-  $reg_path_hash.GetEnumerator() | sort Name |
-  ForEach-Object{
+  $reg_path_hash.GetEnumerator() | Sort-Object Name | ForEach-Object{
     $file="registry_" + $_.Name + ".log"
     Write-Host " " $_.Value "to $file ... " -NoNewline
     reg query $_.Value /s > $workdir\$file
@@ -67,6 +101,26 @@ function WD-Get-Registry ([string] $workdir)
   }
 
   Write-Host " Success to dump registry infomation."  -ForegroundColor Green
+
+  return
+}
+
+# ディスク情報を採取する
+#
+function Export-Disk-Info  ([string] $workdir)
+{
+  $file="Get-Disk.csv"
+  Write-Host "Dump Disk Information to $file ... " -NoNewline
+  Get-Disk `
+    | Select-Object Number, FriendlyName, BusType, OperationalStatus, PartitionStyle, Size, PhysicalSectorSize, `
+                    IsBoot, IsClustered, IsOffline, IsReadOnly, IsSystem, NumberOfPartitions `
+    | Export-Csv -path $workdir\$file -Encoding UTF8
+  Write-Host "ok" -ForegroundColor Green
+  
+  $file="Get-PhysicalDisk.csv"
+  Write-Host "Dump Physical Disk Information to $file ... " -NoNewline
+  Get-PhysicalDisk | Export-Csv -path $workdir\$file -Encoding UTF8
+  Write-Host "ok" -ForegroundColor Green
 
   return
 }
